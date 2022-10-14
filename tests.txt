@@ -1,0 +1,163 @@
+backend cases
+
+precondition
+
+docker pull a201020/qa-test-task:v0.1
+docker run -d -p 5585:5585 a201020/qa-test-task:v0.1
+
+Test 1 - GET /devices returns all devices online
+
+steps
+
+1. Send GET request to http://localhost:5585/devices
+
+Expected result:
+Status 200 ok.
+Json contains array with devices.
+example
+[
+    {
+        "address": "4A",
+        "name": "Engine",
+        "pin_1_pwm_d": 0,
+        "pin_1_pwm_f": 200,
+        "pin_2_pwm_d": 0,
+        "pin_2_pwm_f": 100,
+        "type": "ECM"
+    },
+    {
+        "address": "65",
+        "name": "Power",
+        "pin_1_pwm_d": 100,
+        "pin_1_pwm_f": 10,
+        "pin_2_pwm_d": 50,
+        "pin_2_pwm_f": 500,
+        "type": "PCM"
+    },
+    {
+        "address": "80",
+        "name": "Transmission",
+        "pin_1_pwm_d": 0,
+        "pin_1_pwm_f": 5,
+        "pin_2_pwm_d": 0,
+        "pin_2_pwm_f": 500,
+        "type": "TCM"
+    },
+    {
+        "address": "3F",
+        "name": "Brake",
+        "pin_1_pwm_d": 75,
+        "pin_1_pwm_f": 1,
+        "pin_2_pwm_d": 50,
+        "pin_2_pwm_f": 500,
+        "type": "BCM"
+    },
+    {
+        "address": "40",
+        "name": "Control",
+        "pin_1_pwm_d": 0,
+        "pin_1_pwm_f": 500,
+        "pin_2_pwm_d": 0,
+        "pin_2_pwm_f": 500,
+        "type": "CCM"
+    }
+]
+
+Test 2 - PVM should be sucsessfully changed after PATCH request
+
+steps
+1. Setup monitoring through websocket ws://localhost:5585/start_monitoring/{deviceAddress}
+2. Send PATCH request http://localhost:5585/devices?address={deviceAddress}&duty(1/2)={value}&freq(1/2)={value}
+3. Patch response should be 200 ok
+4. Get list of devices by GET http://localhost:5585/devices
+
+Expected result:
+1. PVM change displayed into websocket log
+2. PVM value changed into list of devices
+
+Test 3 - System report available for device
+
+steps
+1. Send GET request http://localhost:5585/report?address={deviceAddress}&repId=(100/200/300/400)
+
+Expected result:
+Response code should be 200 OK
+Response body contains corresponding data
+
+Test 4 - PVM should not be changed after PATCH request with broken data
+
+steps
+1. Setup monitoring through websocket ws://localhost:5585/start_monitoring/{deviceAddress}
+2. Get list of devices GET http://localhost:5585/devices
+3. Prepare PATCH request with broken data. Example http://localhost:5585/devices?address=4A&duty1=1&freq1=400 (freq can't be 400)
+4. Send prepared PATCH request http://localhost:5585/devices?address={deviceAddress}&duty(1/2)={value}&freq(1/2)={value}
+5. Patch response should be 400 bad request
+6. Get list of devices by GET http://localhost:5585/devices
+
+Expected result:
+1. PVM changed does not displayed into log.
+2. PVM value was not change after patch request.
+
+
+frontend cases
+
+precondition
+
+docker pull a201020/qa-test-task:v0.1
+docker run -d -p 5585:5585 a201020/qa-test-task:v0.1
+
+Test 1 - Verify list of devices on main page
+
+steps
+1. Open localhost:5585
+2. GET http://localhost:5585/devices
+3. Compare data from request with data on UI
+3.1 Compare values in Name
+3.2 Compare values in Type
+3.3 Compare values in address
+4. Every value in table contains button monitoring
+5. Every value in table contains button Diagnostics
+
+Expected result:
+1. Values are equals
+2. Buttons are clicable
+
+Test 2 - Verify monitoring page
+
+steps
+1. Open localhost:5585
+2. Click on monitoring button
+3. 3 card should be displayed - G, Pin 2, Pin 3
+4. G card should contains some data? (Description not clear, what should be displayed)
+5. Pin 2 - change percange to 100%, hz change to 1
+6. Click Save
+7. Pin 3 - change percange to 100%, hz change to 1
+8. Click Save
+
+Expected result:
+G card contains data.
+Values for pin2 changed.
+Values for pin3 changed.
+
+Test 3 - Verify monitoring page with percentage higher than 100 and less than 0
+
+steps
+1. Open localhost:5585
+2. Click on monitoring button
+3. Pin 2 - change percentange to 101 and click Save
+4. Pin 3 - change percentage to -1 and click Save
+
+Expected result
+Pin 2 - percentage was not change.
+Pin 3 - percentage was not change.
+
+Test 4 - Verify diagnostics page
+
+steps
+1. Open localhost:5585
+2. Click on diagnostics button
+3. Select 100 and click load report
+4. Repeat for 200 and 300
+
+Expected result:
+Report displayed for every value

@@ -1,0 +1,66 @@
+1. Monitoring button does not work on main page for
+
+Steps to reproduce
+
+run docker desktop
+execute commands:
+docker pull a201020/qa-test-task:v0.1
+docker run -d -p 5585:5585 a201020/qa-test-task:v0.1
+open localhost:5585 in browser
+click 'monitoring' button for transmission
+
+Expected result:
+Monitoring page for transmission opened
+
+Observed result:
+Nothing happend
+
+2. Pin 3 does not change values for Power and Brake
+run docker desktop
+execute commands:
+docker pull a201020/qa-test-task:v0.1
+docker run -d -p 5585:5585 a201020/qa-test-task:v0.1
+open localhost:5585 in browser
+click 'monitoring' button for Power
+Change percentange value in range 1 to 100
+Change Hz value from dropdown list
+Click save
+
+Expected result:
+Values on Pin 3 card changed.
+
+Observed resultL
+Values on Pin3 not changed.
+
+Note: case also true for Brake
+
+3. Main page does not contains all devices
+
+run docker desktop
+execute commands:
+docker pull a201020/qa-test-task:v0.1
+docker run -d -p 5585:5585 a201020/qa-test-task:v0.1
+send request via postman (or some analogue) GET http://localhost:5585/devices
+open localhost:5585 in browser
+Compare values from request to values on UI
+
+Expected result:
+Values are equesl
+
+Observed result:
+Values is different:
+- address cells contains different values
+- device with name "Control" missed
+
+4. Minor bug. Failed patch request should return corresponding status code, not 200 Ok
+execute commands:
+docker pull a201020/qa-test-task:v0.1
+docker run -d -p 5585:5585 a201020/qa-test-task:v0.1
+send request via postman (or some analogue) PATCH http://localhost:5585/devices?address=4A&duty1=0&freq1=400
+
+Expected result:
+Status code of failed patch request should be 400 - bad requests
+
+Observed result:
+Status code is 200 Ok.
+
